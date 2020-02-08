@@ -1,4 +1,5 @@
 import re
+#Honestly, I'm not sure if these declarations are even necessary...
 global workingArray
 global workingArray1
 global solvingArray
