@@ -1,5 +1,4 @@
 import re
-#Honestly, I'm not sure if these declarations are even necessary...
 global workingArray
 global workingArray1
 global solvingArray
@@ -9,26 +8,27 @@ global i
 global inputString
 global inputArray
 global closeParCount
+output = 0
 
-# Start
-def start():
-    workingArray = []
+# Declare your functions here
+#(1+1(1+2))-((1+3)(1+4))
+def start(output):
+    output = str(output)
+    #workingArray = []
     workingArray1 = []
-    solvingArray = []
+    #solvingArray = []
     parenthesisCount = 0
     currentPar = 0
-    i = 0
+    #i = 0
     closeParCount = 0
-    
     inputString = input("Enter your equation: ")
-    inputArray = re.findall(r"[\d\+\-\*\/\(\)\^]", inputString)
-    
+    #r"(?<!\d)\d{4,7}(?!\d)"
+    inputArray = re.findall(r"[\d\+\-\*\/\(\)\^\.]", inputString)
+    if inputArray[0] in ['+', '-', '*', '/']:
+        inputArray.insert(0, output)
     touchUps(inputArray, workingArray1, currentPar, parenthesisCount, closeParCount)
 
 def touchUps(inputArray, workingArray1, currentPar, parenthesisCount, closeParCount):
-    
-    #Look for multiple number digits and count up the amount of parenthesis. Give parenthesis error if number of open and closed parenthesis are uneven
-    #Will most likely be changed to ignore that and still give correct answers   
     for b in range (len(inputArray)):
         if b >= len(inputArray)-1 :
             for a in range (len(inputArray)):
@@ -44,17 +44,34 @@ def touchUps(inputArray, workingArray1, currentPar, parenthesisCount, closeParCo
             break
         multipleDigits(inputArray, b)
 
-    #Check for a negative in the beginning of the string
+    #Decimal Checking
+    for n in range (len(inputArray)):
+        if n >= len(inputArray)-1:
+            break
+        if inputArray[n] == ".":
+            if inputArray[n+1] in ['+', '-', '*', '/', '(', '.']:
+                print("Syntax Error")
+                start()
+            if n == 0 or inputArray[n-1] in ['+', '-', '*', '/', '(']:
+                inputArray[n] += inputArray[n+1]
+                trash = inputArray.pop(n+1)
+            if n != 0 and re.match(r"[\d]", inputArray[n-1]) and re.match(r"[\d]", inputArray[n+1]):
+                inputArray[n-1] += '.'
+                inputArray[n-1] += inputArray[n+1]
+                trash = inputArray.pop(n)
+                trash = inputArray.pop(n)
+
+    #Check for a negative in the beginning
     if inputArray[0] == "-" :
         trash = inputArray.pop(0)
-        inputArray[0] = -int(inputArray[0])
+        inputArray[0] = -float(inputArray[0])
 
     #Check for negative numbers
     inputArray = twoOperatorsCheck(inputArray, '-')
-    #Check for parenthesis and solve them.
+
     inputArray = findParenthesis(inputArray, workingArray1, currentPar, parenthesisCount)          
 
-#Puts multiple digit numbers that have been split up in the array together again
+
 def multipleDigits(inputArray, a):
     if a >= len(inputArray)-1:
         return
@@ -64,8 +81,7 @@ def multipleDigits(inputArray, a):
         inputArray[a] += inputArray[a+1]
         trash = inputArray.pop(a+1)
         multipleDigits(inputArray, a)
-        
-#Function to check for double negatives or weird combinations like *- or +*
+
 def twoOperatorsCheck(workingArray, badOperator):
     for f in range (len(workingArray)) :
          if f == len(workingArray):
@@ -73,7 +89,7 @@ def twoOperatorsCheck(workingArray, badOperator):
          if str(workingArray[f]) in ['+', '-', '*', '/', '('] and str(workingArray[f+1]) == badOperator :
             del workingArray[f+1]
             if badOperator == '-':
-                workingArray[f+1] = -int(workingArray[f+1])
+                workingArray[f+1] = -float(workingArray[f+1])
     return workingArray
 
 
@@ -105,15 +121,19 @@ def solveParenthesis(inputArray, i, workingArray1, currentPar, parenthesisCount)
             workingArray1.append(inputArray[i+y+1])
         else:     
             #Deletes the parenthesis and its contents and replaces it with the result of workingArray1
-            for z in range (len(workingArray1)+2):           
+            for z in range (len(workingArray1)+2):  
+                
                 if z == len(workingArray1)+2:
                     break
                 trash = inputArray.pop(i)
             #SOLVE THE EQUATION INTO workingArray1!!!!
             workingArray1 = solveEquation(workingArray1)
-            #Puts the result of workingArray1 back into inputArray
+            #Puts the result of workingArray1 into inputArray
             if i == 0 or i > 0 and inputArray[i-1] == '(':
-                #Fills inputArray if it is empty to prevent errors. It will times by 1 to prevent wrong answers. In all my testing, it doesn't screw something up so far.
+                #inputArray.insert(i, '*')
+                #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                #!!!!!  I F  T H I N G S  D O N T  A D D  U P  R I G H T !!!!!
+                #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 if inputArray == [] :
                     inputArray = [1]
                 if inputArray[i] :
@@ -135,7 +155,6 @@ def solveParenthesis(inputArray, i, workingArray1, currentPar, parenthesisCount)
             
 def solveEquation(solvingArray):
     
-    #This loop solves exponents
     k = 0
     while k < len(solvingArray):
         
@@ -152,7 +171,7 @@ def solveEquation(solvingArray):
                 break
             k -= 1
         k += 1
-    #This loop solves both multiplication and division
+
     g = 0
     while g < len(solvingArray):
         if solvingArray[g] == '*':
@@ -164,6 +183,7 @@ def solveEquation(solvingArray):
             solvingArray.insert(g-1, input1)
 
             if g == len(solvingArray) :
+
                 break
             g -= 1
 
@@ -178,10 +198,9 @@ def solveEquation(solvingArray):
             if g == len(solvingArray) :
                 break
             g -= 1
-            
         g += 1
 
-    #This loop finishes it off by doing the addition and subtraction.
+
     numOfOperators = int((len(solvingArray) - 1) / 2)
     input1 = float(solvingArray.pop(0))
     for c in range (numOfOperators) :
@@ -195,12 +214,15 @@ def solveEquation(solvingArray):
 
     
     return(input1)
-#This takes the full array after parenthesis are taken care of and runs it through the solveEquation function and then goes back to the prompt.
+
 def solveAndShow(inputArray, parenthesisCount):
 
+    
     output = solveEquation(inputArray)
     print(output)
-    start()
+    start(output)
 
-#This starts it all off
-start()
+# Solving time!
+#Check for multiple digits
+
+start(output)
